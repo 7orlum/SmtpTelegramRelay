@@ -13,7 +13,7 @@ using NLog;
 
 namespace SmtpTelegramRelay
 {
-    static class Program
+    public static class Program
     {
         [STAThread]
         static void Main(string[] args)

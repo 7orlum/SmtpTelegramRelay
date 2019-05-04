@@ -3,7 +3,7 @@
 
 namespace SmtpTelegramRelay
 {
-    internal class TelegramConfiguration : ConfigurationSection
+    class TelegramConfiguration : ConfigurationSection
     {
         [ConfigurationProperty("token")]
         public string Token => (string)this["token"];

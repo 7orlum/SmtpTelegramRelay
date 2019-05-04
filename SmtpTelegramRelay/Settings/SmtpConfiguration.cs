@@ -3,7 +3,7 @@
 
 namespace SmtpTelegramRelay
 {
-    internal class SmtpConfiguration : ConfigurationSection
+    class SmtpConfiguration : ConfigurationSection
     {
         [ConfigurationProperty("port", DefaultValue = 25)]
         public int Port => (int)this["port"];

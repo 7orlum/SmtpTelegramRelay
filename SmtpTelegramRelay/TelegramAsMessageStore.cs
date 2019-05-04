@@ -11,7 +11,7 @@ using Telegram.Bot;
 
 namespace SmtpTelegramRelay
 {
-    internal class TelegramAsMessageStore : MessageStore
+    class TelegramAsMessageStore : MessageStore
     {
         public TelegramAsMessageStore(string token, int chatId)
         {

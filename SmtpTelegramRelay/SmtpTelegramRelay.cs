@@ -6,7 +6,7 @@ using NLog;
 
 namespace SmtpTelegramRelay
 {
-    internal class SmtpTelegramRelay: ServiceBase
+    class SmtpTelegramRelay: ServiceBase
     {
         public SmtpTelegramRelay()
         {
