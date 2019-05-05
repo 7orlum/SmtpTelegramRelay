@@ -1,6 +1,6 @@
 # What is SmtpTelegramRelay?
 
-SmtpTelegramRelay is an SMTP server that relays all received emails to the specified telegram bot subscriber. Works as a windows service or standalone application. Completely written in C#.
+SmtpTelegramRelay is an SMTP server that relays all received emails to the specified telegram bot subscriber. Works as a windows service or as a standalone application. Completely written in C#.
 
 # How can it be used?
 
