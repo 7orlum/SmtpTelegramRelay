@@ -70,13 +70,14 @@ namespace SmtpTelegramRelay {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Usage: SmtpTelegramRelay [command]
+        ///   Looks up a localized string similar to SmtpTelegramRelay
+        ///Without parameters runs as standalone application.
         ///
-        ///Available commands:
-        ///  install    Install SMTP Telegram Relay as a service
-        ///  uninstall  Uninstall SMTP Telegram Relay service
+        ///SmtpTelegramRelay install
+        ///Install &apos;SMTP Telegram Relay&apos; as a service
         ///
-        ///Without command relay works in interactive mode.
+        ///SmtpTelegramRelay uninstall
+        ///Uninstall &apos;SMTP Telegram Relay&apos; service.
         /// </summary>
         internal static string Help {
             get {

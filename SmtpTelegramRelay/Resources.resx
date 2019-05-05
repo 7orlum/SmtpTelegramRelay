@@ -121,12 +121,13 @@
     <value>SMTP Telegram Relay</value>
   </data>
   <data name="Help" xml:space="preserve">
-    <value>Usage: SmtpTelegramRelay [command]
+    <value>SmtpTelegramRelay
+Without parameters runs as standalone application.
 
-Available commands:
-  install    Install SMTP Telegram Relay as a service
-  uninstall  Uninstall SMTP Telegram Relay service
+SmtpTelegramRelay install
+Install 'SMTP Telegram Relay' as a service
 
-Without command relay works in interactive mode</value>
+SmtpTelegramRelay uninstall
+Uninstall 'SMTP Telegram Relay' service</value>
   </data>
 </root>
