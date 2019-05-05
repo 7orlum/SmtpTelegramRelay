@@ -71,13 +71,13 @@ namespace SmtpTelegramRelay {
         
         /// <summary>
         ///   Looks up a localized string similar to SmtpTelegramRelay
-        ///Without parameters runs as standalone application.
+        ///run SMTP Telegram Relay as a standalone application
         ///
         ///SmtpTelegramRelay install
-        ///Install &apos;SMTP Telegram Relay&apos; as a service
+        ///install SMTP Telegram Relay as a service
         ///
         ///SmtpTelegramRelay uninstall
-        ///Uninstall &apos;SMTP Telegram Relay&apos; service.
+        ///uninstall the SMTP Telegram Relay service.
         /// </summary>
         internal static string Help {
             get {

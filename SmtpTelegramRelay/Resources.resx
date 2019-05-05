@@ -122,12 +122,12 @@
   </data>
   <data name="Help" xml:space="preserve">
     <value>SmtpTelegramRelay
-Without parameters runs as standalone application.
+run SMTP Telegram Relay as a standalone application
 
 SmtpTelegramRelay install
-Install 'SMTP Telegram Relay' as a service
+install SMTP Telegram Relay as a service
 
 SmtpTelegramRelay uninstall
-Uninstall 'SMTP Telegram Relay' service</value>
+uninstall the SMTP Telegram Relay service</value>
   </data>
 </root>
