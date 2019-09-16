@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using SmtpServer;
@@ -13,9 +13,13 @@ namespace SmtpTelegramRelay
 {
     class TelegramAsMessageStore : MessageStore
     {
-        public TelegramAsMessageStore(string token, int chatId)
+        public TelegramAsMessageStore(string token, int chatId, string proxy)
         {
-            _bot = new TelegramBotClient(token);
+            if (string.IsNullOrEmpty(proxy))
+                _bot = new TelegramBotClient(token);
+            else
+                _bot = new TelegramBotClient(token, new WebProxy(proxy));
+
             _chatId = chatId;
         }
 
