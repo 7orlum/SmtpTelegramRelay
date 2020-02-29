@@ -19,7 +19,7 @@ namespace SmtpTelegramRelay
             _cancellationTokenSource = new CancellationTokenSource();
 
             var telegramSettings = TelegramConfiguration.Read();
-            var telegram = new TelegramAsMessageStore(telegramSettings.Token, telegramSettings.ChatId, telegramSettings.Proxy);
+            var telegram = new TelegramAsMessageStore(telegramSettings.Token, telegramSettings.ChatId, telegramSettings.Proxy.GetIWebProxy());
 
             var smtpSettings = SmtpConfiguration.Read();
             var options = new SmtpServer.SmtpServerOptionsBuilder()

@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.ComponentModel;
 
 
 namespace SmtpTelegramRelay
@@ -14,7 +15,8 @@ namespace SmtpTelegramRelay
 
 
         [ConfigurationProperty("proxy", DefaultValue = null)]
-        public string Proxy => (string)this["proxy"];
+        [TypeConverter(typeof(ProxySettingsConverter))]
+        public ProxySettings Proxy => (ProxySettings)this["proxy"];
 
 
         public static TelegramConfiguration Read()

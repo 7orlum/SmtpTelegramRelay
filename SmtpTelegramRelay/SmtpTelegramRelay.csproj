@@ -185,6 +185,7 @@
     <Compile Include="Installer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Settings\ProxySettings.cs" />
     <Compile Include="SmtpTelegramRelay.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -200,7 +201,9 @@
     <Compile Include="TelegramAsMessageStore.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
