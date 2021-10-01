@@ -1,7 +1,9 @@
-﻿using System;
+﻿using NLog;
+using SmtpServer;
+using SmtpServer.ComponentModel;
+using System;
 using System.ServiceProcess;
 using System.Threading;
-using NLog;
 
 
 namespace SmtpTelegramRelay
@@ -10,24 +12,28 @@ namespace SmtpTelegramRelay
     {
         public SmtpTelegramRelay()
         {
-            this.ServiceName = Resources.ApplicationName;
+            ServiceName = Resources.ApplicationName;
         }
 
 
-        public void Start()
+        public async void Start()
         {
             _cancellationTokenSource = new CancellationTokenSource();
 
             var telegramSettings = TelegramConfiguration.Read();
-            var telegram = new TelegramAsMessageStore(telegramSettings.Token, telegramSettings.ChatId, telegramSettings.Proxy.GetIWebProxy());
+            var telegramAsMessageStore = new TelegramAsMessageStore(telegramSettings.Token, telegramSettings.ChatId, telegramSettings.Proxy?.GetIWebProxy());
 
             var smtpSettings = SmtpConfiguration.Read();
-            var options = new SmtpServer.SmtpServerOptionsBuilder()
+            var options = new SmtpServerOptionsBuilder()
                 .Port(smtpSettings.Port)
-                .MessageStore(telegram)
                 .Build();
-            var smtpServer = new SmtpServer.SmtpServer(options);
-            _ = smtpServer.StartAsync(_cancellationTokenSource.Token);
+
+            var serviceProvider = new ServiceProvider();
+            serviceProvider.Add(telegramAsMessageStore);
+
+            var smtpServer = new SmtpServer.SmtpServer(options, serviceProvider);
+            _ = new SmtpSessionLogger(smtpServer, _log);
+            await smtpServer.StartAsync(_cancellationTokenSource.Token);
 
             if (Environment.UserInteractive)
                 _log.Warn($"{ServiceName} started in interactive mode");

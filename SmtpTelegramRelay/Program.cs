@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Configuration.Install;
 using System.Diagnostics.Contracts;
 using System.Security;
-using System.Security.Permissions;
 using System.Runtime.ExceptionServices;
 using System.Globalization;
 using NLog;

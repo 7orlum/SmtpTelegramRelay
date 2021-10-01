@@ -1,14 +1,13 @@
-﻿using System;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using MimeKit;
 using SmtpServer;
 using SmtpServer.Storage;
 using SmtpServer.Protocol;
-using SmtpServer.Mail;
-using MimeKit;
+using System.Buffers;
+using System.IO;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Telegram.Bot;
-
 
 namespace SmtpTelegramRelay
 {
@@ -16,23 +15,26 @@ namespace SmtpTelegramRelay
     {
         public TelegramAsMessageStore(string token, int chatId, IWebProxy proxy)
         {
-            _bot = new TelegramBotClient(token, proxy);
+            if (proxy == null)
+                _bot = new TelegramBotClient(token);
+            else
+                _bot = new TelegramBotClient(token, proxy);
+
             _chatId = chatId;
         }
 
-
-        public override async Task<SmtpResponse> SaveAsync(ISessionContext context, IMessageTransaction transaction, CancellationToken cancellationToken)
+        public override async Task<SmtpResponse> SaveAsync(ISessionContext context, IMessageTransaction transaction, ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
         {
-            var message = MimeMessage.Load(((ITextMessage)transaction.Message).Content);
+            var stream = new MemoryStream(buffer.ToArray(), writable: false);
+            var message = await MimeMessage.LoadAsync(stream, cancellationToken);
 
             await _bot.SendTextMessageAsync(
                 chatId: _chatId, 
                 text: $"{message.Subject}\nFrom: {message.From}\nTo: {message.To}\n{message.TextBody}", 
-                 cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken);
 
             return SmtpResponse.Ok;
         }
-
 
         TelegramBotClient _bot;
         int _chatId;
