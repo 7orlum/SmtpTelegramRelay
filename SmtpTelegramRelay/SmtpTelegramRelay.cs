@@ -10,18 +10,20 @@ namespace SmtpTelegramRelay
 {
     class SmtpTelegramRelay: ServiceBase
     {
+        CancellationTokenSource _cancellationTokenSource;
+        static readonly Logger _log = LogManager.GetCurrentClassLogger();
+
         public SmtpTelegramRelay()
         {
             ServiceName = Resources.ApplicationName;
         }
-
 
         public async void Start()
         {
             _cancellationTokenSource = new CancellationTokenSource();
 
             var telegramSettings = TelegramConfiguration.Read();
-            var telegramAsMessageStore = new TelegramAsMessageStore(telegramSettings.Token, telegramSettings.ChatId, telegramSettings.Proxy?.GetIWebProxy());
+            var telegramAsMessageStore = new TelegramAsMessageStore(telegramSettings.Token, telegramSettings.ChatId);
 
             var smtpSettings = SmtpConfiguration.Read();
             var options = new SmtpServerOptionsBuilder()
@@ -41,13 +43,12 @@ namespace SmtpTelegramRelay
                 _log.Warn($"{ServiceName} service started");
         }
 
-
         #region ServiceBase
+
         protected override void OnStart(string[] args)
         {
             Start();
         }
-
 
         protected override void OnStop()
         {
@@ -65,7 +66,6 @@ namespace SmtpTelegramRelay
                 _log.Warn($"{ServiceName} service stopped");
         }
 
-
         protected override void Dispose(bool disposing)
         {
             if (_cancellationTokenSource != null)
@@ -73,16 +73,12 @@ namespace SmtpTelegramRelay
 
             base.Dispose(disposing);
         }
+        
         #endregion ServiceBase
 
-        
         bool CheckProgramSettings()
         {
             return true;
         }
-
-
-        CancellationTokenSource _cancellationTokenSource;
-        static readonly Logger _log = LogManager.GetCurrentClassLogger();
     }
 }
