@@ -1,19 +1,16 @@
-﻿using NLog;
-using SmtpServer;
-using SmtpServer.ComponentModel;
-using System;
-using System.Threading;
-using Topshelf;
+﻿using SmtpServer;
+using SmtpServer.Net;
+using SmtpServer.Tracing;
 
-namespace SmtpTelegramRelay
+namespace SmtpTelegramRelay;
+
+sealed class Relay(ILogger<Relay> logger) : BackgroundService
 {
-    class Relay: ServiceControl, IDisposable
-    {
-        CancellationTokenSource _cancellationTokenSource;
-        NLog.Logger _log = LogManager.GetCurrentClassLogger();
-        bool _disposed;
+    private SmtpServer.SmtpServer? _server;
 
-        public bool Start(HostControl hostControl)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        try
         {
             var smtpSettings = SmtpConfiguration.Read();
             var telegramSettings = TelegramConfiguration.Read();
@@ -22,58 +19,91 @@ namespace SmtpTelegramRelay
                 .Port(smtpSettings.Port)
                 .Build();
 
-            var provider = new ServiceProvider();
-            provider.Add(new Store(telegramSettings.Token, telegramSettings.ChatId));
+            var serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
+            serviceProvider.Add(new Store(telegramSettings.Token, telegramSettings.ChatId));
 
-            var smtpServer = new SmtpServer.SmtpServer(options, provider);
-            _ = new Logger(smtpServer, _log);
+            _server = new SmtpServer.SmtpServer(options, serviceProvider);
+            _server.SessionCreated += OnSessionCreated;
+            _server.SessionCompleted += OnSessionCompleted;
+            _server.SessionFaulted += OnSessionFaulted;
+            _server.SessionCancelled += OnSessionCancelled;
 
-            _cancellationTokenSource = new();
-            smtpServer.StartAsync(_cancellationTokenSource.Token).Wait();
+            var result = _server.StartAsync(stoppingToken);
 
-            if (Environment.UserInteractive)
-                _log.Warn($"{Resources.ApplicationName} started in interactive mode");
-            else
-                _log.Warn($"{Resources.ApplicationName} service started");
-
-            return true;
+            return result;
         }
-
-        public bool Stop(HostControl hostControl)
+        catch (OperationCanceledException)
         {
-            if (_cancellationTokenSource != null)
-            {
-                if (!_cancellationTokenSource.IsCancellationRequested)
-                    _cancellationTokenSource.Cancel();
-
-                _cancellationTokenSource.Dispose();
-            }
-
-            if (Environment.UserInteractive)
-                _log.Warn($"{Resources.ApplicationName} program stopped");
-            else
-                _log.Warn($"{Resources.ApplicationName} service stopped");
-
-            return true;
+            // When the stopping token is canceled, for example, a call made from services.msc,
+            // we shouldn't exit with a non-zero exit code. In other words, this is expected...
         }
-
-        public void Dispose()
+        catch (Exception ex)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            logger.LogError(ex, "{Message}", ex.Message);
+
+            // Terminates this process and returns an exit code to the operating system.
+            // This is required to avoid the 'BackgroundServiceExceptionBehavior', which
+            // performs one of two scenarios:
+            // 1. When set to "Ignore": will do nothing at all, errors cause zombie services.
+            // 2. When set to "StopHost": will cleanly stop the host, and log errors.
+            //
+            // In order for the Windows Service Management system to leverage configured
+            // recovery options, we need to terminate the process with a non-zero exit code.
+            Environment.Exit(1);
         }
 
-        protected virtual void Dispose(bool disposing)
+        return Task.CompletedTask;
+    }
+
+    public override async Task StopAsync(CancellationToken stoppingToken)
+    {
+        if (!stoppingToken.IsCancellationRequested && _server is not null)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (_cancellationTokenSource != null)
-                _cancellationTokenSource.Dispose();
-
-            _disposed = true;
+            _server.Shutdown();
+            await _server.ShutdownTask.ConfigureAwait(false);
         }
+
+        await base.StopAsync(stoppingToken).ConfigureAwait(false);
+    }
+
+    void OnSessionCreated(object? sender, SessionEventArgs e)
+    {
+        logger.LogDebug("{Session} session created",
+            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
+
+        e.Context.CommandExecuting += OnCommandExecuting;
+    }
+
+    void OnSessionCompleted(object? sender, SessionEventArgs e)
+    {
+        logger.LogDebug("{Session} session completed",
+            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
+
+        e.Context.CommandExecuting -= OnCommandExecuting;
+    }
+
+    void OnSessionFaulted(object? sender, SessionFaultedEventArgs e)
+    {
+        logger.LogDebug(e.Exception, "{Session} session faulted",
+            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
+
+        e.Context.CommandExecuting -= OnCommandExecuting;
+    }
+
+    void OnSessionCancelled(object? sender, SessionEventArgs e)
+    {
+        logger.LogDebug("{Session} session cancelled",
+            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
+
+        e.Context.CommandExecuting -= OnCommandExecuting;
+    }
+
+    void OnCommandExecuting(object? sender, SmtpCommandEventArgs e)
+    {
+        var writer = new StringWriter();
+        new TracingSmtpCommandVisitor(writer).Visit(e.Command);
+        logger.LogDebug("{Session} command {Command}",
+            e.Context.Properties[EndpointListener.RemoteEndPointKey],
+            writer.ToString());
     }
 }

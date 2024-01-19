@@ -3,14 +3,11 @@ using SmtpServer;
 using SmtpServer.Storage;
 using SmtpServer.Protocol;
 using System.Buffers;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 
 namespace SmtpTelegramRelay
 {
-    class Store : MessageStore
+    sealed class Store : MessageStore
     {
         TelegramBotClient _bot;
         int _chatId;

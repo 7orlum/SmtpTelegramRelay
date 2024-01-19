@@ -1,104 +1,100 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.ComponentModel;
 
-namespace SmtpTelegramRelay
+namespace SmtpTelegramRelay;
+
+enum ProxyType { None, HTTP };
+
+sealed class ProxySettings
 {
-    enum ProxyType { None, HTTP };
+    public ProxyType ProxyType;
+    public string? UserName;
+    public string? Password;
+    public string? Address;
+    public ushort Port = 80;
 
-    class ProxySettings
+    public ProxySettings(string s)
     {
-        public ProxyType ProxyType;
-        public string UserName;
-        public string Password;
-        public string Address;
-        public int Port;
-
-        public ProxySettings(string s)
+        if (string.IsNullOrWhiteSpace(s))
         {
-            if (string.IsNullOrWhiteSpace(s))
-            {
-                ProxyType = ProxyType.None;
-                return;
-            }
-
-            //parse string user:password@address:port
-            var regex = new Regex(@"^((?<username>[^: ]+):(?<password>.+)@)?(?<address>[^: ]+)(:(?<port>\d{1,5}))?$", RegexOptions.Singleline);
-            var match = regex.Match(s.Trim());
-            if (match.Success)
-            {
-                ProxyType = ProxyType.HTTP;
-                UserName = match.Groups["username"].Value;
-                Password = match.Groups["password"].Value;
-                Address = match.Groups["address"].Value;
-
-                if (string.IsNullOrWhiteSpace(match.Groups["port"].Value))
-                {
-                    Port = 80;
-                    return;
-                }
-
-                if (int.TryParse(match.Groups["port"].Value, out Port))
-                    return;
-            }
-
-            throw new ArgumentException($"Can't parse proxy string {s}");
+            ProxyType = ProxyType.None;
+            return;
         }
 
-        public IWebProxy GetIWebProxy()
+        //parse string user:password@address:port
+        var regex = new Regex(@"^((?<username>[^: ]+):(?<password>.+)@)?(?<address>[^: ]+)(:(?<port>\d{1,5}))?$", RegexOptions.Singleline);
+        var match = regex.Match(s.Trim());
+        if (match.Success)
         {
-            switch (ProxyType)
+            ProxyType = ProxyType.HTTP;
+            UserName = match.Groups["username"].Value;
+            Password = match.Groups["password"].Value;
+            Address = match.Groups["address"].Value;
+
+            if (!ushort.TryParse(match.Groups["port"].Value, out Port))
             {
-                case ProxyType.None:
-                    return null;
-                case ProxyType.HTTP:
-                    if (string.IsNullOrEmpty(UserName) && string.IsNullOrEmpty(Password))
-                        return new WebProxy(Address, Port);
-                    else
-                        return new WebProxy(Address, Port) { Credentials = new NetworkCredential(UserName, Password) };
-                default:
-                    throw new NotImplementedException();
+                throw new ArgumentException($"Proxy server port must be in range 0..65535 {s}");
             }
         }
-
-        public override string ToString()
+        else
         {
-            if (ProxyType == ProxyType.None)
-                return string.Empty;
-
-            var result = new StringBuilder($"{ProxyType.ToString().ToLowerInvariant()}//:");
-
-            if (!string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(Password))
-                result.Append($"{UserName}:{Password}");
-
-            result.Append($"{Address}:{Port}");
-
-            return result.ToString();
+            throw new ArgumentException($"Unable to parse proxy server address {s}");
         }
     }
 
-    public class ProxySettingsConverter : TypeConverter
+    public IWebProxy? GetIWebProxy()
     {
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+        switch (ProxyType)
         {
-            return sourceType == typeof(string);
+            case ProxyType.None:
+                return null;
+            case ProxyType.HTTP:
+                if (string.IsNullOrEmpty(UserName) && string.IsNullOrEmpty(Password))
+                    return new WebProxy(Address, Port);
+                else
+                    return new WebProxy(Address, Port) { Credentials = new NetworkCredential(UserName, Password) };
+            default:
+                throw new NotImplementedException();
         }
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-        {
-            return new ProxySettings((string)value);
-        }
+    }
 
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-        {
-            return destinationType == typeof(string);
-        }
+    public override string ToString()
+    {
+        if (ProxyType == ProxyType.None)
+            return string.Empty;
 
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-        {
-            return value.ToString();
-        }
+        var result = new StringBuilder($"{ProxyType.ToString().ToLowerInvariant()}//:");
+
+        if (!string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(Password))
+            result.Append($"{UserName}:{Password}");
+
+        result.Append($"{Address}:{Port}");
+
+        return result.ToString();
+    }
+}
+
+public class ProxySettingsConverter : TypeConverter
+{
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type? sourceType)
+    {
+        return sourceType == typeof(string);
+    }
+    public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        return new ProxySettings((string)value);
+    }
+
+    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+    {
+        return destinationType == typeof(string);
+    }
+
+    public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type? destinationType)
+    {
+        return value?.ToString();
     }
 }
