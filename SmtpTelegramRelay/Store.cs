@@ -10,9 +10,12 @@ using Telegram.Bot;
 
 namespace SmtpTelegramRelay
 {
-    class TelegramAsMessageStore : MessageStore
+    class Store : MessageStore
     {
-        public TelegramAsMessageStore(string token, int chatId)
+        TelegramBotClient _bot;
+        int _chatId;
+
+        public Store(string token, int chatId)
         {
             _bot = new TelegramBotClient(token);
             _chatId = chatId;
@@ -20,18 +23,11 @@ namespace SmtpTelegramRelay
 
         public override async Task<SmtpResponse> SaveAsync(ISessionContext context, IMessageTransaction transaction, ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
         {
-            var stream = new MemoryStream(buffer.ToArray(), writable: false);
-            var message = await MimeMessage.LoadAsync(stream, cancellationToken);
-
-            await _bot.SendTextMessageAsync(
-                chatId: _chatId, 
-                text: $"{message.Subject}\nFrom: {message.From}\nTo: {message.To}\n{message.TextBody}", 
-                cancellationToken: cancellationToken);
-
+            using var stream = new MemoryStream(buffer.ToArray(), writable: false);
+            var message = await MimeMessage.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
+            var text = $"{message.Subject}\nFrom: {message.From}\nTo: {message.To}\n{message.TextBody}";
+            await _bot.SendTextMessageAsync(_chatId, text, cancellationToken: cancellationToken).ConfigureAwait(false);
             return SmtpResponse.Ok;
         }
-
-        TelegramBotClient _bot;
-        int _chatId;
     }
 }

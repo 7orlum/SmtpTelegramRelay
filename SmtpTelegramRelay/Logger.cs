@@ -1,17 +1,15 @@
-﻿using NLog;
-using SmtpServer;
+﻿using SmtpServer;
 using SmtpServer.Net;
 using SmtpServer.Tracing;
-using System;
 using System.IO;
 
 namespace SmtpTelegramRelay
 {
-    class SmtpSessionLogger
+    class Logger
     {
-        Logger _log;
+        NLog.Logger _log;
 
-        public SmtpSessionLogger(SmtpServer.SmtpServer server, Logger logger)
+        public Logger(SmtpServer.SmtpServer server, NLog.Logger logger)
         {
             server.SessionCreated += OnSessionCreated;
             server.SessionCompleted += OnSessionCompleted;

@@ -5,11 +5,9 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using System.ComponentModel;
 
-
 namespace SmtpTelegramRelay
 {
     enum ProxyType { None, HTTP };
-
 
     class ProxySettings
     {
@@ -18,7 +16,6 @@ namespace SmtpTelegramRelay
         public string Password;
         public string Address;
         public int Port;
-
 
         public ProxySettings(string s)
         {
@@ -51,7 +48,6 @@ namespace SmtpTelegramRelay
             throw new ArgumentException($"Can't parse proxy string {s}");
         }
 
-
         public IWebProxy GetIWebProxy()
         {
             switch (ProxyType)
@@ -68,7 +64,6 @@ namespace SmtpTelegramRelay
             }
         }
 
-
         public override string ToString()
         {
             if (ProxyType == ProxyType.None)
@@ -84,7 +79,6 @@ namespace SmtpTelegramRelay
             return result.ToString();
         }
     }
-
 
     public class ProxySettingsConverter : TypeConverter
     {

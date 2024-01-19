@@ -2,12 +2,12 @@
 using System.ServiceProcess;
 using System.Threading;
 using System.Reflection;
-using System.Configuration.Install;
 using System.Diagnostics.Contracts;
 using System.Security;
 using System.Runtime.ExceptionServices;
 using System.Globalization;
 using NLog;
+using Topshelf;
 
 
 namespace SmtpTelegramRelay
@@ -38,11 +38,26 @@ namespace SmtpTelegramRelay
         }
 
 
+        static void Configure()
+        {
+            HostFactory.Run(x =>
+            {
+                x.Service<Relay>(service =>
+                {
+                    service.ConstructUsing(s => new MyService());
+                    service.WhenStarted(s => s.Start());
+                    service.WhenStopped(s => s.Stop());
+                });
+                x.RunAsLocalSystem();
+                x.SetServiceName("MyWindowServiceWithTopshelf");
+            });
+        }
+
         static void RunAsService()
         {
             try
             {
-                ServiceBase.Run(new ServiceBase[] { new SmtpTelegramRelay() });
+                ServiceBase.Run(new ServiceBase[] { new Relay() });
             }
             catch (Exception e)
             {
@@ -60,7 +75,7 @@ namespace SmtpTelegramRelay
             Console.WriteLine($"{Resources.ApplicationName} is runnig. Press any key to stop...");
             Console.WriteLine();
 
-            var relay = new SmtpTelegramRelay();
+            var relay = new Relay();
             relay.Start();
 
             Console.ReadKey(true);
@@ -123,6 +138,6 @@ namespace SmtpTelegramRelay
         }
 
 
-        static readonly Logger _log = LogManager.GetCurrentClassLogger();
+        static readonly NLog.Logger _log = LogManager.GetCurrentClassLogger();
     }
 }
