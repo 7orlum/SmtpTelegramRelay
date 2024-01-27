@@ -6,7 +6,8 @@ public static class Program
     {
         var builder = Host.CreateApplicationBuilder(args);
         builder.Services.AddHostedService<Relay>();
-        
+        builder.Services.Configure<RelayConfiguration>(builder.Configuration);
+
         var host = builder.Build();
         host.Run();
     }

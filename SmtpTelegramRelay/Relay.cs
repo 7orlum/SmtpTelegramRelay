@@ -1,10 +1,11 @@
-﻿using SmtpServer;
+﻿using Microsoft.Extensions.Options;
+using SmtpServer;
 using SmtpServer.Net;
 using SmtpServer.Tracing;
 
 namespace SmtpTelegramRelay;
 
-sealed class Relay(ILogger<Relay> logger) : BackgroundService
+sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfiguration> options) : BackgroundService
 {
     private SmtpServer.SmtpServer? _server;
 
@@ -12,17 +13,14 @@ sealed class Relay(ILogger<Relay> logger) : BackgroundService
     {
         try
         {
-            var smtpSettings = SmtpConfiguration.Read();
-            var telegramSettings = TelegramConfiguration.Read();
-
-            var options = new SmtpServerOptionsBuilder()
-                .Port(smtpSettings.Port)
+            var serverOptions = new SmtpServerOptionsBuilder()
+                .Port(options.CurrentValue.SmtpPort)
                 .Build();
 
-            var serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
-            serviceProvider.Add(new Store(telegramSettings.Token, telegramSettings.ChatId));
+            var telegramStore = new SmtpServer.ComponentModel.ServiceProvider();
+            telegramStore.Add(new Store(options));
 
-            _server = new SmtpServer.SmtpServer(options, serviceProvider);
+            _server = new SmtpServer.SmtpServer(serverOptions, telegramStore);
             _server.SessionCreated += OnSessionCreated;
             _server.SessionCompleted += OnSessionCompleted;
             _server.SessionFaulted += OnSessionFaulted;
