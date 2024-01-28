@@ -1,4 +1,8 @@
-﻿namespace SmtpTelegramRelay;
+﻿using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.Extensions.Logging.EventLog;
+using System.Runtime.InteropServices;
+
+namespace SmtpTelegramRelay;
 
 public static class Program
 {
@@ -13,6 +17,16 @@ public static class Program
         builder.Services
             .AddHostedService<Relay>()
             .Configure<RelayConfiguration>(builder.Configuration);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            builder.Services.AddWindowsService(options => options.ServiceName = "SMTP Telegram Relay");
+            LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(builder.Services);
+        }
+        else
+        {
+            builder.Services.AddSystemd();
+        }
 
         var host = builder.Build();
         host.Run();

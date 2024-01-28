@@ -4,7 +4,7 @@ SmtpTelegramRelay is an SMTP server that relays all received emails to specified
 
 # Setup
 
-Edit `appsettings.yaml`. First, specify your telegram bot token and chatId.
+1. Edit `appsettings.yaml`. At least specify a telegram bot token and a chat ID.
 ```yaml
 # The port that the relay will listen on to receive SMTP e-mail messages, the default is 25. 
 # No authorization is required when connecting to this port, select Basic Authorizathion if it is required
@@ -24,9 +24,20 @@ Logging:
   LogLevel:
     Default: Debug
 ```
-  
-* Run `SmtpTelegramRelay.exe` as a standalone application
-* or register the program as a Windows Service `sc.exe create "Smtp Telegram Relay" binpath="C:\Program Files\SmtpTelegramRelay\SmtpTelegramRelay.exe"`
-and start it `sc.exe start "Smtp Telegram Relay"`
-  
-Send a test email and get it in telegram. Use `localhost` as an SMTP server address, `25` as a port and no authentifiacation or, if necessary, select the basic authentication method with a fake username and password.
+2. Register and run
+2.1. Run `SmtpTelegramRelay.exe` as a standalone application
+2.2. or register the program as a windows service `sc.exe create "SMTP Telegram Relay" binpath="C:\Program Files\SmtpTelegramRelay\SmtpTelegramRelay.exe" start=auto obj="NT AUTHORITY\LocalService"`
+then start the windows service `sc.exe start "SMTP Telegram Relay"`
+2.3. or register the program as a systemd service in unix-like operating systems. Create a configuration file `/etc/systemd/system/smtp-telegram-relay.service` looking as follows:
+    ```ini
+    [Unit]
+    Description=SMTP Telegram Relay
+    [Service]
+    Type=simple
+    ExecStart=/usr/sbin/SmtpTelegramRelay
+    [Install]
+    WantedBy=multi-user.target
+    ```
+    Then say systemd to load the new configuration file `sudo systemctl daemon-reload` and run the service `sudo systemctl start smtp-telegram-relay.service`
+
+3. Send a test email and get it in telegram. Use `localhost` as an SMTP server address, `25` as a port and no authentifiacation or, if necessary, select the basic authentication method with a fake username and password.
