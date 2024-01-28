@@ -8,11 +8,11 @@ using Microsoft.Extensions.Options;
 
 namespace SmtpTelegramRelay;
 
-sealed class Store(IOptionsMonitor<RelayConfiguration> options) : MessageStore
+internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : MessageStore
 {
     private const string _asterisk = "*";
-    TelegramBotClient? _bot;
-    string? _token;
+    private TelegramBotClient? _bot;
+    private string? _token;
 
     public override async Task<SmtpResponse> SaveAsync(
         ISessionContext context, 

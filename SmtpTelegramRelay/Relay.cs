@@ -5,7 +5,7 @@ using SmtpServer.Tracing;
 
 namespace SmtpTelegramRelay;
 
-sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfiguration> options) : BackgroundService
+internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfiguration> options) : BackgroundService
 {
     private SmtpServer.SmtpServer? _server;
 
