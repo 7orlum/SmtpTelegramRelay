@@ -1,128 +1,34 @@
-﻿using System;
-using System.ServiceProcess;
-using System.Threading;
-using System.Reflection;
-using System.Configuration.Install;
-using System.Diagnostics.Contracts;
-using System.Security;
-using System.Runtime.ExceptionServices;
-using System.Globalization;
-using NLog;
+﻿using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.Extensions.Logging.EventLog;
+using System.Runtime.InteropServices;
 
+namespace SmtpTelegramRelay;
 
-namespace SmtpTelegramRelay
+public static class Program
 {
-    public static class Program
+    private static void Main(string[] args)
     {
-        [STAThread]
-        static void Main(string[] args)
+        var builder = Host.CreateApplicationBuilder(args);
+        
+        builder.Configuration
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddYamlFile("appsettings.yaml", optional: true)
+            .AddYamlFile($"appsettings.{builder.Environment.EnvironmentName}.yaml", optional: true);
+        builder.Services
+            .AddHostedService<Relay>()
+            .Configure<RelayConfiguration>(builder.Configuration);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            //gracefully close logger when the process terminates
-            AppDomain.CurrentDomain.ProcessExit += (object sender, EventArgs e) => { LogManager.Flush(); LogManager.Shutdown(); Thread.Sleep(1000); };
-            AppDomain.CurrentDomain.DomainUnload += (object sender, EventArgs e) => { LogManager.Flush(); LogManager.Shutdown(); Thread.Sleep(1000); };
-
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LogUnhandledException);
-
-            if (args != null && args.Length > 0)
-                Install(args);
-            else if (Environment.UserInteractive)
-                RunInteractively();
-            else
-                RunAsService();
-
-            LogManager.Flush();
-            LogManager.Shutdown();
-
-            //take NLog.Telegram a chanсe to send an error message
-            Thread.Sleep(1000);
+            builder.Services.AddWindowsService(options => options.ServiceName = "SMTP Telegram Relay");
+            LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(builder.Services);
+        }
+        else
+        {
+            builder.Services.AddSystemd();
         }
 
-
-        static void RunAsService()
-        {
-            try
-            {
-                ServiceBase.Run(new ServiceBase[] { new SmtpTelegramRelay() });
-            }
-            catch (Exception e)
-            {
-                _log.Fatal(e);
-            }
-        }
-
-
-        static void RunInteractively()
-        {
-            Console.TreatControlCAsInput = true;
-
-            Console.WriteLine(Resources.Help);
-            Console.WriteLine();
-            Console.WriteLine($"{Resources.ApplicationName} is runnig. Press any key to stop...");
-            Console.WriteLine();
-
-            var relay = new SmtpTelegramRelay();
-            relay.Start();
-
-            Console.ReadKey(true);
-
-            relay.Stop();
-        }
-
-
-        static void Install(string[] args)
-        {
-            Contract.Requires(args != null);
-
-            if (args.Length == 1 && args[0] != null)
-            {
-                switch (args[0].ToLower(CultureInfo.InvariantCulture))
-                {
-                    case "install":
-                        try
-                        {
-                            ManagedInstallerClass.InstallHelper(new[] { Assembly.GetExecutingAssembly().Location });
-                        }
-                        catch (Exception e)
-                        {
-                            _log.Error(e, "Failed to install service.");
-                        }
-                        break;
-                    case "uninstall":
-                        try
-                        {
-                            ManagedInstallerClass.InstallHelper(new[] { "/u", Assembly.GetExecutingAssembly().Location });
-                        }
-                        catch (Exception e)
-                        {
-                            _log.Error(e, "Failed to uninstall service.");
-                        }
-                        break;
-                    default:
-                        Console.WriteLine(Resources.Help);
-                        break;
-                }
-            }
-            else
-                Console.WriteLine(Resources.Help);
-        }
-
-
-        [SecurityCritical, HandleProcessCorruptedStateExceptions]
-        static void LogUnhandledException(object sender, UnhandledExceptionEventArgs args)
-        {
-            if (args.IsTerminating)
-                _log.Fatal((Exception)args.ExceptionObject, "Unhandled exception occure, runtime is terminating");
-            else
-                _log.Fatal((Exception)args.ExceptionObject, "Unhandled exception occure, runtime is not terminating");
-
-            LogManager.Flush();
-            LogManager.Shutdown();
-
-            //take NLog.Telegram a chanсe to send an error message
-            Thread.Sleep(1000);
-        }
-
-
-        static readonly Logger _log = LogManager.GetCurrentClassLogger();
+        var host = builder.Build();
+        host.Run();
     }
 }
