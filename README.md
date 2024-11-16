@@ -4,7 +4,7 @@ SmtpTelegramGateway is an SMTP gateway that forwards received emails to specifie
 
 # Setup
 
-1. Edit `appsettings.yaml`. At least specify a telegram bot token and a chat ID.
+1. Edit `appsettings.yaml`. At least specify a telegram bot token and a chat id.
     ```yaml
     # The port that the gateway will listen on to receive SMTP e-mail messages, the default is 25. 
     # No authorization is required when connecting to this port, select Basic Authorizathion if it is required
@@ -28,11 +28,17 @@ SmtpTelegramGateway is an SMTP gateway that forwards received emails to specifie
       LogLevel:
         Default: Debug
     ```
-2. Register and run  
-    a. Run `SmtpTelegramGateway.exe` as a standalone application  
-    b. Or register the program as a windows service `sc.exe create "SMTP Telegram Gateway" binpath="C:\Program Files\SmtpTelegramGateway\SmtpTelegramGateway.exe" start=auto obj="NT AUTHORITY\LocalService"`
-then start the windows service `sc.exe start "SMTP Telegram Gateway"`  
-    c. Or register the program as a systemd service in unix-like operating systems. Create a configuration file `/etc/systemd/system/smtp-telegram-gateway.service` looking as follows:
+2. Register and run
+    - Run `SmtpTelegramGateway.exe` as a standalone application
+    - Or register the program as a windows service
+        ```ps
+        sc.exe create "SMTP Telegram Gateway" binpath="C:\Program Files\SmtpTelegramGateway\SmtpTelegramGateway.exe" start=auto obj="NT AUTHORITY\LocalService"
+        ```
+        then start the windows service
+        ```ps
+        sc.exe start "SMTP Telegram Gateway"
+        ```
+    - Or register the program as a systemd service in unix-like operating systems. Create a configuration file `/etc/systemd/system/smtp-telegram-gateway.service` looking as follows:
         ```ini
         [Unit]
         Description=SMTP Telegram Gateway
@@ -42,6 +48,13 @@ then start the windows service `sc.exe start "SMTP Telegram Gateway"`
         [Install]
         WantedBy=multi-user.target
         ```
-        Then say systemd to load the new configuration file `sudo systemctl daemon-reload` and run the service `sudo systemctl start smtp-telegram-gateway.service`
+        then say systemd to load the new configuration file
+        ```console
+        sudo systemctl daemon-reload
+        ```
+        and run the service
+        ```console
+        sudo systemctl start smtp-telegram-gateway.service`
+        ```
 
-3. Send a test email and get it in telegram. Use `localhost` as an SMTP server address, `25` as a port and no authentifiacation or, if necessary, select the basic authentication method with a fake username and password.
+4. Send a test email and get it in telegram. Use `localhost` as an SMTP server address, `25` as a port and no authentifiacation or, if necessary, select the basic authentication method with a fake username and password.
