@@ -28,7 +28,7 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
         PrepareBot(currentOptions, cancellationToken);
         foreach (var chat in GetChats(currentOptions, message.To))
         {
-            await _bot!.SendTextMessageAsync(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         
         return SmtpResponse.Ok;
@@ -38,7 +38,7 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
     {
         if (_bot != null && _token != currentOptions.TelegramBotToken)
         {
-            _ = _bot.CloseAsync(cancellationToken);
+            _ = _bot.Close(cancellationToken);
             _bot = null;
         }
 
