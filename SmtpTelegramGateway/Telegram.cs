@@ -6,9 +6,9 @@ using System.Buffers;
 using Telegram.Bot;
 using Microsoft.Extensions.Options;
 
-namespace SmtpTelegramRelay;
+namespace SmtpTelegramGateway;
 
-internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<RelayConfiguration> options) : MessageStore
+internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configuration> options) : MessageStore
 {
     private const string _asterisk = "*";
     private TelegramBotClient? _bot;
@@ -36,13 +36,13 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<RelayCo
             return SmtpResponse.Ok;
         }
         catch (Exception e)
-        { 
+        {
             logger.Error(e);
             return SmtpResponse.TransactionFailed;
         }
     }
 
-    private void PrepareBot(RelayConfiguration currentOptions, CancellationToken cancellationToken)
+    private void PrepareBot(Configuration currentOptions, CancellationToken cancellationToken)
     {
         if (_bot != null && _token != currentOptions.TelegramBotToken)
         {
@@ -57,7 +57,7 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<RelayCo
         }
     }
 
-    private static IEnumerable<long> GetChats(RelayConfiguration options, InternetAddressList emails)
+    private static IEnumerable<long> GetChats(Configuration options, InternetAddressList emails)
     {
         var result = new List<long>();
 

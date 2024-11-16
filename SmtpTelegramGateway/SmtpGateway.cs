@@ -2,9 +2,9 @@
 using SmtpServer;
 using SmtpServer.Storage;
 
-namespace SmtpTelegramRelay;
+namespace SmtpTelegramGateway;
 
-internal sealed class Relay(MessageStore store, ILogger<Relay> logger, IOptionsMonitor<RelayConfiguration> options) : BackgroundService
+internal sealed class SmtpGateway(MessageStore store, ILogger<SmtpGateway> logger, IOptionsMonitor<Configuration> options) : BackgroundService
 {
     private SmtpServer.SmtpServer? _server;
 

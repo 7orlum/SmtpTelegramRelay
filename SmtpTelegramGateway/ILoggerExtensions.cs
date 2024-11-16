@@ -2,7 +2,7 @@
 using SmtpServer.Net;
 using SmtpServer.Tracing;
 
-namespace SmtpTelegramRelay;
+namespace SmtpTelegramGateway;
 
 internal static class ILoggerExtensions
 {

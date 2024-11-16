@@ -1,6 +1,6 @@
-﻿namespace SmtpTelegramRelay;
+﻿namespace SmtpTelegramGateway;
 
-internal sealed class RelayConfiguration
+internal sealed class Configuration
 {
     public ushort SmtpPort { get; set; } = 25;
     public string TelegramBotToken { get; set; } = default!;

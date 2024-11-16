@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging.EventLog;
 using SmtpServer.Storage;
 using System.Runtime.InteropServices;
 
-namespace SmtpTelegramRelay;
+namespace SmtpTelegramGateway;
 
 internal sealed class Program
 {
@@ -17,11 +17,11 @@ internal sealed class Program
             .AddYamlFile($"appsettings.{builder.Environment.EnvironmentName}.yaml", optional: true);
 
         _ = builder.Services
-            .AddHostedService<Relay>()
+            .AddHostedService<SmtpGateway>()
             .AddSingleton<MessageStore, Telegram>()
-            .Configure<RelayConfiguration>(builder.Configuration)
+            .Configure<Configuration>(builder.Configuration)
             .AddSystemd()
-            .AddWindowsService(options => options.ServiceName = "SMTP Telegram Relay");
+            .AddWindowsService(options => options.ServiceName = "SMTP Telegram Gateway");
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
