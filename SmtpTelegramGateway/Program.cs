@@ -13,8 +13,8 @@ internal sealed class Program
 
         _ = builder.Configuration
             .SetBasePath(AppContext.BaseDirectory)
-            .AddYamlFile("appsettings.yaml", optional: true)
-            .AddYamlFile($"appsettings.{builder.Environment.EnvironmentName}.yaml", optional: true);
+            .AddYamlFile("appsettings.yaml", optional: true, reloadOnChange: true)
+            .AddYamlFile($"appsettings.{builder.Environment.EnvironmentName}.yaml", optional: true, reloadOnChange: true);
 
         _ = builder.Services
             .AddHostedService<SmtpGateway>()
