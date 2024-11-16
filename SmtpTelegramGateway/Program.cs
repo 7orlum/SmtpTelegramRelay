@@ -17,7 +17,7 @@ internal sealed class Program
             .AddYamlFile($"appsettings.{builder.Environment.EnvironmentName}.yaml", optional: true, reloadOnChange: true);
 
         _ = builder.Services
-            .AddHostedService<SmtpGateway>()
+            .AddHostedService<Smtp>()
             .AddSingleton<MessageStore, Telegram>()
             .Configure<Configuration>(builder.Configuration)
             .AddSystemd()

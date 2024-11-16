@@ -36,7 +36,7 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
                 }
                 catch (Exception e)
                 {
-                    logger.Error(e);
+                    logger.LogError(e);
                 }
             }
 
@@ -44,7 +44,7 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
         }
         catch (Exception e)
         {
-            logger.Error(e);
+            logger.LogError(e);
             return SmtpResponse.TransactionFailed;
         }
     }

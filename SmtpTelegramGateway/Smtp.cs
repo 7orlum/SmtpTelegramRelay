@@ -4,7 +4,7 @@ using SmtpServer.Storage;
 
 namespace SmtpTelegramGateway;
 
-internal sealed class SmtpGateway(MessageStore store, ILogger<SmtpGateway> logger, IOptionsMonitor<Configuration> options) : BackgroundService
+internal sealed class Smtp(MessageStore store, ILogger<Smtp> logger, IOptionsMonitor<Configuration> options) : BackgroundService
 {
     private SmtpServer.SmtpServer? _server;
 
@@ -37,7 +37,7 @@ internal sealed class SmtpGateway(MessageStore store, ILogger<SmtpGateway> logge
         }
         catch (Exception ex)
         {
-            logger.Error(ex);
+            logger.LogError(ex);
 
             // Terminates this process and returns an exit code to the operating system.
             // This is required to avoid the 'BackgroundServiceExceptionBehavior', which
@@ -67,30 +67,30 @@ internal sealed class SmtpGateway(MessageStore store, ILogger<SmtpGateway> logge
 
     private void OnSessionCreated(object? sender, SessionEventArgs e)
     {
-        logger.DebugSessionCreated(e);
+        logger.LogSmtpSessionCreated(e);
         e.Context.CommandExecuting += OnCommandExecuting;
     }
 
     private void OnSessionCompleted(object? sender, SessionEventArgs e)
     {
-        logger.DebugSessionCompleted(e);
+        logger.LogSmtpSessionCompleted(e);
         e.Context.CommandExecuting -= OnCommandExecuting;
     }
 
     private void OnSessionCancelled(object? sender, SessionEventArgs e)
     {
-        logger.DebugSessionCancelled(e);
+        logger.LogSmtpSessionCancelled(e);
         e.Context.CommandExecuting -= OnCommandExecuting;
     }
 
     private void OnSessionFaulted(object? sender, SessionFaultedEventArgs e)
     {
-        logger.DebugSessionFaulted(e);
+        logger.LogSmtpSessionFaulted(e);
         e.Context.CommandExecuting -= OnCommandExecuting;
     }
 
     private void OnCommandExecuting(object? sender, SmtpCommandEventArgs e)
     {
-        logger.DebugCommandExecuting(e);
+        logger.LogSmtpCommandExecuting(e);
     }
 }
