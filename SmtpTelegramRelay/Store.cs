@@ -49,9 +49,9 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
         }
     }
 
-    private static IEnumerable<int> GetChats(RelayConfiguration options, InternetAddressList emails)
+    private static IEnumerable<long> GetChats(RelayConfiguration options, InternetAddressList emails)
     {
-        var result = new List<int>();
+        var result = new List<long>();
         
         foreach (var address in emails) 
         {

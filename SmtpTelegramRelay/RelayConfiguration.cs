@@ -9,6 +9,6 @@ internal sealed class RelayConfiguration
     public sealed class Route
     {
         public string Email { get; set; } = default!;
-        public int TelegramChatId { get; set; }
+        public long TelegramChatId { get; set; }
     }
 }
