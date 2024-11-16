@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
 using SmtpServer;
+using SmtpServer.Storage;
 
 namespace SmtpTelegramRelay;
 
-internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfiguration> options) : BackgroundService
+internal sealed class Relay(MessageStore store, ILogger<Relay> logger, IOptionsMonitor<RelayConfiguration> options) : BackgroundService
 {
     private SmtpServer.SmtpServer? _server;
 
@@ -16,10 +17,10 @@ internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfigur
                 .Port(options.CurrentValue.SmtpPort)
                 .Build();
 
-            var telegramStore = new SmtpServer.ComponentModel.ServiceProvider();
-            telegramStore.Add(new Store(options));
+            var serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
+            serviceProvider.Add(store);
 
-            _server = new SmtpServer.SmtpServer(serverOptions, telegramStore);
+            _server = new SmtpServer.SmtpServer(serverOptions, serviceProvider);
             _server.SessionCreated += OnSessionCreated;
             _server.SessionCompleted += OnSessionCompleted;
             _server.SessionFaulted += OnSessionFaulted;

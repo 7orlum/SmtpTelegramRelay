@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace SmtpTelegramRelay;
 
-internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : MessageStore
+internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<RelayConfiguration> options) : MessageStore
 {
     private const string _asterisk = "*";
     private TelegramBotClient? _bot;
@@ -20,18 +20,26 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
         ReadOnlySequence<byte> buffer,
         CancellationToken cancellationToken)
     {
-        using var stream = new MemoryStream(buffer.ToArray(), writable: false);
-        var message = await MimeMessage.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
-        var text = $"{message.Subject}\nFrom: {message.From}\nTo: {message.To}\n{message.TextBody}";
-
-        var currentOptions = options.CurrentValue;
-        PrepareBot(currentOptions, cancellationToken);
-        foreach (var chat in GetChats(currentOptions, message.To))
+        try
         {
-            _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
+            using var stream = new MemoryStream(buffer.ToArray(), writable: false);
+            var message = await MimeMessage.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
+            var text = $"{message.Subject}\nFrom: {message.From}\nTo: {message.To}\n{message.TextBody}";
 
-        return SmtpResponse.Ok;
+            var currentOptions = options.CurrentValue;
+            PrepareBot(currentOptions, cancellationToken);
+            foreach (var chat in GetChats(currentOptions, message.To))
+            {
+                _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
+            return SmtpResponse.Ok;
+        }
+        catch (Exception e)
+        { 
+            logger.Error(e);
+            return SmtpResponse.TransactionFailed;
+        }
     }
 
     private void PrepareBot(RelayConfiguration currentOptions, CancellationToken cancellationToken)

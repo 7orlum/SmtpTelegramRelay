@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
+using SmtpServer.Storage;
 using System.Runtime.InteropServices;
 
 namespace SmtpTelegramRelay;
@@ -17,6 +18,7 @@ internal sealed class Program
 
         _ = builder.Services
             .AddHostedService<Relay>()
+            .AddSingleton<MessageStore, Telegram>()
             .Configure<RelayConfiguration>(builder.Configuration)
             .AddSystemd()
             .AddWindowsService(options => options.ServiceName = "SMTP Telegram Relay");

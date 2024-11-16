@@ -4,7 +4,7 @@ using SmtpServer.Tracing;
 
 namespace SmtpTelegramRelay;
 
-internal static class RelayLoggerExtensions
+internal static class ILoggerExtensions
 {
     private static readonly Action<ILogger, string, Exception?> _error =
         LoggerMessage.Define<string>(
@@ -40,7 +40,7 @@ internal static class RelayLoggerExtensions
         LoggerMessage.Define<object, string>(
             LogLevel.Debug,
             5,
-            "Session {Session} is executing command {Command}");
+            "Session {Session} got command {Command}");
 
     public static void Error(this ILogger logger, Exception e)
     {
