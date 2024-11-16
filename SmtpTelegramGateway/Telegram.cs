@@ -23,7 +23,7 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
         try
         {
             using var stream = new MemoryStream(buffer.ToArray(), writable: false);
-            var message = await MimeMessage.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
+            using var message = await MimeMessage.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
             var text = $"{message.Subject}\nFrom: {message.From}\nTo: {message.To}\n{message.TextBody}";
 
             var currentOptions = options.CurrentValue;
@@ -34,6 +34,10 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
                 {
                     _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
                     logger.LogError(e);
@@ -41,6 +45,10 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
             }
 
             return SmtpResponse.Ok;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception e)
         {
