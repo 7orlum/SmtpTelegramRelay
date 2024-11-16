@@ -1,10 +1,10 @@
-﻿using MimeKit;
+﻿using Microsoft.Extensions.Options;
+using MimeKit;
 using SmtpServer;
 using SmtpServer.Storage;
 using SmtpServer.Protocol;
 using System.Buffers;
 using Telegram.Bot;
-using Microsoft.Extensions.Options;
 
 namespace SmtpTelegramGateway;
 
