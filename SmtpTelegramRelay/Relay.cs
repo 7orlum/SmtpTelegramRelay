@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using SmtpServer;
-using SmtpServer.Net;
-using SmtpServer.Tracing;
 
 namespace SmtpTelegramRelay;
 
@@ -9,6 +7,7 @@ internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfigur
 {
     private SmtpServer.SmtpServer? _server;
 
+#pragma warning disable CA1031 // Do not catch general exception types
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
@@ -37,7 +36,7 @@ internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfigur
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "{Message}", ex.Message);
+            logger.Error(ex);
 
             // Terminates this process and returns an exit code to the operating system.
             // This is required to avoid the 'BackgroundServiceExceptionBehavior', which
@@ -52,6 +51,7 @@ internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfigur
 
         return Task.CompletedTask;
     }
+#pragma warning restore CA1031 // Do not catch general exception types
 
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
@@ -64,44 +64,32 @@ internal sealed class Relay(ILogger<Relay> logger, IOptionsMonitor<RelayConfigur
         await base.StopAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    void OnSessionCreated(object? sender, SessionEventArgs e)
+    private void OnSessionCreated(object? sender, SessionEventArgs e)
     {
-        logger.LogDebug("{Session} session created",
-            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
-
+        logger.DebugSessionCreated(e);
         e.Context.CommandExecuting += OnCommandExecuting;
     }
 
-    void OnSessionCompleted(object? sender, SessionEventArgs e)
+    private void OnSessionCompleted(object? sender, SessionEventArgs e)
     {
-        logger.LogDebug("{Session} session completed",
-            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
-
+        logger.DebugSessionCompleted(e);
         e.Context.CommandExecuting -= OnCommandExecuting;
     }
 
-    void OnSessionFaulted(object? sender, SessionFaultedEventArgs e)
+    private void OnSessionCancelled(object? sender, SessionEventArgs e)
     {
-        logger.LogDebug(e.Exception, "{Session} session faulted",
-            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
-
+        logger.DebugSessionCancelled(e);
         e.Context.CommandExecuting -= OnCommandExecuting;
     }
 
-    void OnSessionCancelled(object? sender, SessionEventArgs e)
+    private void OnSessionFaulted(object? sender, SessionFaultedEventArgs e)
     {
-        logger.LogDebug("{Session} session cancelled",
-            e.Context.Properties[EndpointListener.RemoteEndPointKey]);
-
+        logger.DebugSessionFaulted(e);
         e.Context.CommandExecuting -= OnCommandExecuting;
     }
 
-    void OnCommandExecuting(object? sender, SmtpCommandEventArgs e)
+    private void OnCommandExecuting(object? sender, SmtpCommandEventArgs e)
     {
-        var writer = new StringWriter();
-        new TracingSmtpCommandVisitor(writer).Visit(e.Command);
-        logger.LogDebug("{Session} command {Command}",
-            e.Context.Properties[EndpointListener.RemoteEndPointKey],
-            writer.ToString());
+        logger.DebugCommandExecuting(e);
     }
 }

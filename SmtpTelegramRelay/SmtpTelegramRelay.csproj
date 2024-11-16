@@ -47,4 +47,12 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <EditorConfigFiles Remove="C:\Project\orlum\SmtpTelegramRelay\SmtpTelegramRelay\.editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="C:\Project\orlum\SmtpTelegramRelay\SmtpTelegramRelay\.editorconfig" />
+	</ItemGroup>
 </Project>

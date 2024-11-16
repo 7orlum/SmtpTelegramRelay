@@ -4,28 +4,26 @@ using System.Runtime.InteropServices;
 
 namespace SmtpTelegramRelay;
 
-public static class Program
+internal sealed class Program
 {
     private static void Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
-        
-        builder.Configuration
+
+        _ = builder.Configuration
             .SetBasePath(AppContext.BaseDirectory)
             .AddYamlFile("appsettings.yaml", optional: true)
             .AddYamlFile($"appsettings.{builder.Environment.EnvironmentName}.yaml", optional: true);
-        builder.Services
+
+        _ = builder.Services
             .AddHostedService<Relay>()
-            .Configure<RelayConfiguration>(builder.Configuration);
+            .Configure<RelayConfiguration>(builder.Configuration)
+            .AddSystemd()
+            .AddWindowsService(options => options.ServiceName = "SMTP Telegram Relay");
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            builder.Services.AddWindowsService(options => options.ServiceName = "SMTP Telegram Relay");
             LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(builder.Services);
-        }
-        else
-        {
-            builder.Services.AddSystemd();
         }
 
         var host = builder.Build();

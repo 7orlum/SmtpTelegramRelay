@@ -15,9 +15,9 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
     private string? _token;
 
     public override async Task<SmtpResponse> SaveAsync(
-        ISessionContext context, 
-        IMessageTransaction transaction, 
-        ReadOnlySequence<byte> buffer, 
+        ISessionContext context,
+        IMessageTransaction transaction,
+        ReadOnlySequence<byte> buffer,
         CancellationToken cancellationToken)
     {
         using var stream = new MemoryStream(buffer.ToArray(), writable: false);
@@ -28,9 +28,9 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
         PrepareBot(currentOptions, cancellationToken);
         foreach (var chat in GetChats(currentOptions, message.To))
         {
-            await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
+            _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
-        
+
         return SmtpResponse.Ok;
     }
 
@@ -52,8 +52,8 @@ internal sealed class Store(IOptionsMonitor<RelayConfiguration> options) : Messa
     private static IEnumerable<long> GetChats(RelayConfiguration options, InternetAddressList emails)
     {
         var result = new List<long>();
-        
-        foreach (var address in emails) 
+
+        foreach (var address in emails)
         {
             switch (address)
             {
