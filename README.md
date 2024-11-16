@@ -13,11 +13,12 @@ SmtpTelegramGateway is an SMTP gateway that forwards received emails to specifie
     TelegramBotToken: SPECIFY THERE TELEGRAM BOT TOKEN
     # Define here a list of email addresses and telegram chats that will receive emails sent to these addresses.
     # Use an asterisk "*" instead of an email address to send all emails to some telegram chat
+    # For Telegram chats that are group or channel chats, add a minus in front of the chat ID
     Routing:
     -   Email: "*"
-        TelegramChatId: SPECIFY THERE TELEGRAM CHATID
+        TelegramChat: SPECIFY THERE TELEGRAM CHATID OR @USERNAME
     -   Email: example@test.com
-        TelegramChatId: SPECIFY THERE TELEGRAM CHATID
+        TelegramChat: SPECIFY THERE TELEGRAM CHATID OR @USERNAME
     # Logging Level. Set to Debug to see the details of the communication between your mail program and the gateway.
     # Set to Error to see less information
     Logging:

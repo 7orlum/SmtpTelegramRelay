@@ -30,7 +30,14 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
             PrepareBot(currentOptions, cancellationToken);
             foreach (var chat in GetChats(currentOptions, message.To))
             {
-                _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    logger.Error(e);
+                }
             }
 
             return SmtpResponse.Ok;
@@ -57,9 +64,9 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
         }
     }
 
-    private static IEnumerable<long> GetChats(Configuration options, InternetAddressList emails)
+    private static IEnumerable<string> GetChats(Configuration options, InternetAddressList emails)
     {
-        var result = new List<long>();
+        var result = new List<string>();
 
         foreach (var address in emails)
         {
@@ -68,14 +75,14 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
                 case MailboxAddress email:
                     var chats = options.Routing
                         .Where(r => String.Equals(r.Email, email.Address, StringComparison.OrdinalIgnoreCase))
-                        .Select(r => r.TelegramChatId)
+                        .Select(r => r.TelegramChat.Trim())
                         .ToArray();
 
                     if (chats.Length == 0)
                     {
                         chats = options.Routing
                             .Where(r => r.Email == _asterisk)
-                            .Select(r => r.TelegramChatId)
+                            .Select(r => r.TelegramChat.Trim())
                             .ToArray();
                     }
 

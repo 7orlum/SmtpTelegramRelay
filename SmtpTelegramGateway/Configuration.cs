@@ -3,12 +3,12 @@
 internal sealed class Configuration
 {
     public ushort SmtpPort { get; set; } = 25;
-    public string TelegramBotToken { get; set; } = default!;
+    public required string TelegramBotToken { get; set; }
     public List<Route> Routing { get; set; } = [];
 
     internal sealed class Route
     {
-        public string Email { get; set; } = default!;
-        public long TelegramChatId { get; set; }
+        public required string Email { get; set; }
+        public required string TelegramChat { get; set; }
     }
 }
