@@ -30,6 +30,7 @@ internal sealed class Telegram(ILogger<Telegram> logger, IOptionsMonitor<Configu
             PrepareBot(currentOptions, cancellationToken);
             foreach (var chat in GetChats(currentOptions, message.To))
             {
+                logger.LogTelegramSendingMessage(chat);
                 try
                 {
                     _ = await _bot!.SendMessage(chat, text, cancellationToken: cancellationToken).ConfigureAwait(false);

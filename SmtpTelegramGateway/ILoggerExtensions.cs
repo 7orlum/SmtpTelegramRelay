@@ -12,6 +12,12 @@ internal static class ILoggerExtensions
             0,
             "{Message}");
 
+    private static readonly Action<ILogger, string, Exception?> _debugTelegramSendingMessage =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            0,
+            "Telegram sending message to {Chat}");
+
     private static readonly Action<ILogger, object, Exception?> _debugSessionCreated =
         LoggerMessage.Define<object>(
             LogLevel.Debug,
@@ -81,4 +87,10 @@ internal static class ILoggerExtensions
 
         _debugCommandExecuting(logger, session, command, default);
     }
+
+    public static void LogTelegramSendingMessage(this ILogger logger, string chat)
+    {
+        _debugTelegramSendingMessage(logger, chat, default);
+    }
+
 }
